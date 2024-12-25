@@ -6,19 +6,141 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <script type="module" defer src="./js/index.js"></script>
-
   <title>Knee-preop</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+    }
+
+    .left-panel,
+    .right-panel {
+      width: 400px;
+      background: #f5f5f5;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .control-group input[type="radio"] {
+      margin: 0;
+    }
+
+    .canvas-container {
+      flex-grow: 1;
+      background: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .scene {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .update-btn {
+      margin-top: 20px;
+      padding: 8px 16px;
+      background: #ff0000;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slider-container input[type="range"] {
+      flex-grow: 1;
     }
   </style>
 </head>
 
 <body>
-  <canvas class="scene"></canvas>
+  <div class="left-panel">
+    <div class="control-group">
+      <input type="radio" name="femur-center" id="femur-center">
+      <label for="femur-center">Femur Center</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="hip-center" id="hip-center">
+      <label for="hip-center">Hip Center</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="femur-proximal" id="femur-proximal">
+      <label for="femur-proximal">Femur Proximal Canal</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="femur-distal" id="femur-distal">
+      <label for="femur-distal">Femur Distal Canal</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="medial-epicondyle" id="medial-epicondyle">
+      <label for="medial-epicondyle">Medial Epicondyle</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="lateral-epicondyle" id="lateral-epicondyle">
+      <label for="lateral-epicondyle">Lateral Epicondyle</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="Distal-Medial-pt" id="Distal-Medial-pt">
+      <label for="Distal-Medial-pt">Distal Medial Pt</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="Distal-Lateral-pt" id="Distal-Lateral-pt">
+      <label for="Distal-Lateral-pt">Distal Lateral Pt</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="Posterior-Medial-pt" id="Posterior-Medial-pt">
+      <label for="Posterior-Medial-pt">Posterior Medial Pt</label>
+    </div>
+    <div class="control-group">
+      <input type="radio" name="Posterior-Lateral-pt" id="Posterior-Lateral-pt">
+      <label for="Posterior-Lateral-pt">Posterior Lateral Pt</label>
+    </div>
+    <button class="update-btn">Update</button>
+  </div>
+
+  <div class="canvas-container">
+    <canvas class="scene"></canvas>
+  </div>
+
+  <div class="right-panel">
+    <div class="slider-container">
+      <span>Varus/Valgus</span>
+      <input type="range" min="-3" max="3" value="0" step="1">
+      <span>3°</span>
+    </div>
+    <div class="slider-container">
+      <span>Flexion/Extension</span>
+      <input type="range" min="-3" max="3" value="0" step="1">
+      <span>3°</span>
+    </div>
+    <div class="slider-container">
+      <span>Distal Resection</span>
+      <input type="range" min="0" max="20" value="10" step="1">
+      <span>10 mm</span>
+    </div>
+    <div class="control-group">
+      <input type="checkbox" id="resection">
+      <label for="resection">Resection</label>
+    </div>
+  </div>
 </body>
 
 </html>
