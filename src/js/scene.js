@@ -21,6 +21,7 @@ import vertexShader from './glsl/main.vert'
 import fragmentShader from './glsl/main.frag'
 import gsap from 'gsap'
 import { AddLabels } from './components/three/AddLabels'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
 
 
 export default class MainScene {
@@ -34,6 +35,7 @@ export default class MainScene {
   height
   scene1
   labels
+  transformControl
 
   constructor() {
     this.canvas = document.querySelector('.scene')
@@ -60,9 +62,10 @@ export default class MainScene {
     this.camera = new Camera(this.scene);
     this.light = new Light(this.scene);
     this.setRender()
+    this.setControls()
+
     this.setRaycaster()
     this.modelSetUp();
-    this.setControls()
     this.setAxesHelper();
     this.handleResize()
     this.events()
@@ -77,7 +80,7 @@ export default class MainScene {
 
   setScene() {
     this.scene = new Scene();
-    // this.scene.background = new Color(0xff0000);
+    this.scene.background = new Color(0xffffff);
   }
 
   setControls() {
@@ -98,6 +101,7 @@ export default class MainScene {
     this.boneGroup = new Group()
     this.boneGroup.add(this.femur)
     this.boneGroup.add(this.tibia)
+    this.boneGroup.scale.set(0.009, 0.009, 0.009)
     this.boneGroup.rotation.set(Math.PI * 1.5, 0, 0)
     const box = new Box3().setFromObject(this.boneGroup)
     const center = box.getCenter(new Vector3())
@@ -109,7 +113,10 @@ export default class MainScene {
       this.raycaster,
       this.mouse,
       this.femur,
-      this.tibia
+      this.tibia,
+      this.scene,
+      this.renderer,
+      this.controls
     );
   }
 
@@ -128,7 +135,7 @@ export default class MainScene {
   }
 
   draw = (time) => {
-    this.renderer.render(this.scene, this.camera.camera) // render scene
+    this.renderer.render(this.scene, this.camera.camera)
     this.raf = window.requestAnimationFrame(this.draw)
   }
 

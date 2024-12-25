@@ -14,7 +14,7 @@ export class Camera {
 
         // set classic camera
         this.camera = new PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane)
-        this.camera.position.set(0, 0, 1000)
+        this.camera.position.set(0, 0, 10)
         this.scene.add(this.camera)
     }
 }

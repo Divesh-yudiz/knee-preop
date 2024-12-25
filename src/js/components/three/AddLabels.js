@@ -1,5 +1,5 @@
-import { MeshBasicMaterial, Quaternion, Vector3, Mesh, Texture, Raycaster, Scene } from 'three';
-import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
+import { MeshBasicMaterial, Matrix3, Mesh, SphereGeometry, Group } from 'three';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
 export class AddLabels {
     camera
@@ -8,20 +8,32 @@ export class AddLabels {
     femur
     tibia
     scene
+    renderer
+    orbitControls
+    transformControls
 
-    constructor(camera, raycaster, mouse, femur, tibia, scene = new Scene()) {
+    constructor(camera, raycaster, mouse, femur, tibia, scene, renderer, controls) {
         this.camera = camera;
         this.raycaster = raycaster;
         this.mouse = mouse;
         this.femur = femur;
         this.tibia = tibia;
         this.scene = scene;
+        this.renderer = renderer;
+        this.orbitControls = controls;
+        this.transformControls = [];
+        if (!this.orbitControls) {
+            console.warn('OrbitControls not provided to AddLabels');
+        }
+        this.boundMouseMove = this.onMouseMove.bind(this);
+        this.boundClick = this.onClick.bind(this);
+
         this.init();
     }
 
     init = () => {
-        window.addEventListener('mousemove', this.onMouseMove.bind(this));
-        window.addEventListener('click', this.onClick.bind(this));
+        window.addEventListener('mousemove', this.boundMouseMove);
+        window.addEventListener('click', this.boundClick);
     }
 
     onMouseMove = (event) => {
@@ -30,40 +42,100 @@ export class AddLabels {
     }
 
     onClick = (event) => {
-        this.raycaster.setFromCamera(this.mouse, this.camera);
+        // Add keyboard event listener for mode switching
+        window.addEventListener('keydown', (event) => {
+            const control = this.transformControls[this.transformControls.length - 1]?.control;
+            if (!control) return;
 
+            switch (event.key) {
+                case 'w':
+                    control.setMode('translate');
+                    break;
+                case 'e':
+                    control.setMode('rotate');
+                    break;
+                case 'r':
+                    control.setMode('scale');
+                    break;
+                case '+':
+                case '=':
+                    control.setSize(control.size + 0.1);
+                    break;
+                case '-':
+                case '_':
+                    control.setSize(Math.max(control.size - 0.1, 0.1));
+                    break;
+                case ' ':
+                    control.enabled = !control.enabled;
+                    break;
+                case 'Escape':
+                    control.reset();
+                    break;
+            }
+        });
+
+        this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersects = this.raycaster.intersectObjects([this.femur, this.tibia]);
 
         if (intersects.length > 0) {
-            const intersectedObject = intersects[0].object;
-            const point = intersects[0].point;
-            const normal = intersects[0].face.normal;
+            const intersection = intersects[0];
+            const point = intersection.point;
+            const normal = intersection.face.normal;
 
-            console.log('Clicked on:', intersectedObject === this.femur ? 'Femur' : 'Tibia');
+            // Create a helper position for normal visualization
+            const normalMatrix = new Matrix3().getNormalMatrix(intersection.object.matrixWorld);
+            const worldNormal = normal.clone().applyNormalMatrix(normalMatrix);
 
-            this.createDecal(point, normal, intersectedObject === this.femur ? 'Femur' : 'Tibia');
+            console.log('Clicked on:', intersection.object === this.femur ? 'Femur' : 'Tibia');
+            this.createSphere(point, worldNormal);
         }
     }
 
-    createDecal = (position, normal, text) => {
-        const decalMaterial = new MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.8 });
-        const decalGeometry = new DecalGeometry(this.femur, position, new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), normal), new Vector3(1, 1, 1));
+    createSphere = (position, normal) => {
+        try {
+            // Create a group first
+            const group = new Group();
+            this.scene.add(group);
 
-        const decalMesh = new Mesh(decalGeometry, decalMaterial);
-        decalMesh.lookAt(normal);
+            // Create and add sphere to the group
+            const sphereGeometry = new SphereGeometry(0.01, 32, 32);
+            const sphereMaterial = new MeshBasicMaterial({
+                color: 0xff00ff,
+                depthTest: false,
+                transparent: true,
+                opacity: 0.8
+            });
+            const sphere = new Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.copy(position);
+            sphere.renderOrder = 999;
+            sphere.material.needsUpdate = true;
+            group.add(sphere);
 
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        context.fillStyle = 'rgba(255, 255, 255, 1)';
-        context.fillRect(0, 0, 256, 64);
-        context.fillStyle = 'black';
-        context.font = 'bold 24px Arial';
-        context.fillText(text, 10, 30);
+            // Enhanced transform control setup
+            const transformControl = new TransformControls(this.camera, this.renderer.domElement);
+            transformControl.setMode('translate');
+            transformControl.setSize(0.5);
 
-        const texture = new Texture(canvas);
-        texture.needsUpdate = true;
-        decalMaterial.map = texture;
-        this.scene.add(decalMesh);
+            // Get the helper/gizmo and add it to the scene
+            const gizmo = transformControl.getHelper();
+            this.scene.add(gizmo);
+
+            // Attach control to the sphere
+            transformControl.attach(sphere);
+
+            if (this.orbitControls) {
+                transformControl.addEventListener('dragging-changed', (event) => {
+                    this.orbitControls.enabled = !event.value;
+                });
+            }
+
+            this.transformControls.push({ control: transformControl, object: sphere, group: group });
+
+            return sphere;
+        } catch (error) {
+            console.error('Error in createSphere:', error);
+            return null;
+        }
     }
 
     getScreenPosition = (position) => {
@@ -71,5 +143,27 @@ export class AddLabels {
         const x = (vector.x * .5 + .5) * window.innerWidth;
         const y = -(vector.y * .5 + .5) * window.innerHeight;
         return { x, y };
+    }
+
+    cleanup = () => {
+        // Remove keyboard event listeners
+        window.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('keyup', this.handleKeyUp);
+
+        window.removeEventListener('mousemove', this.boundMouseMove);
+        window.removeEventListener('click', this.boundClick);
+
+        this.transformControls.forEach(({ control, object, group }) => {
+            control.detach(); // Detach before cleanup
+            if (object) {
+                object.geometry.dispose();
+                object.material.dispose();
+            }
+            if (group) {
+                this.scene.remove(group);
+            }
+            this.scene.remove(control); // Remove control from scene
+        });
+        this.transformControls = [];
     }
 }
