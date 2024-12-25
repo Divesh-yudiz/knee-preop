@@ -11,6 +11,7 @@ export class AddLabels {
     renderer
     orbitControls
     transformControls
+    activeLandmark = null; // Track the currently active landmark
 
     constructor(camera, raycaster, mouse, femur, tibia, scene, renderer, controls) {
         this.camera = camera;
@@ -28,6 +29,7 @@ export class AddLabels {
         this.boundMouseMove = this.onMouseMove.bind(this);
         this.boundClick = this.onClick.bind(this);
 
+        this.getLabels();
         this.init();
     }
 
@@ -76,19 +78,74 @@ export class AddLabels {
 
         this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersects = this.raycaster.intersectObjects([this.femur, this.tibia]);
+        console.log("points::", intersects)
 
         if (intersects.length > 0) {
             const intersection = intersects[0];
             const point = intersection.point;
-            const normal = intersection.face.normal;
+            // Check if a landmark button is clicked
+            const clickedLandmark = this.getClickedLandmark(event);
+            console.log("points", clickedLandmark)
+            if (clickedLandmark) {
+                this.activateLandmark(clickedLandmark);
+                return; // Exit after activating the landmark
+            }
 
-            // Create a helper position for normal visualization
-            const normalMatrix = new Matrix3().getNormalMatrix(intersection.object.matrixWorld);
-            const worldNormal = normal.clone().applyNormalMatrix(normalMatrix);
-
-            console.log('Clicked on:', intersection.object === this.femur ? 'Femur' : 'Tibia');
-            this.createSphere(point, worldNormal);
+            // Create landmark if an active landmark is set
+            if (this.activeLandmark) {
+                this.createSphere(point, intersection.face.normal);
+            }
         }
+    }
+
+    getClickedLandmark(event) {
+        // Logic to determine if a landmark button was clicked
+        // This function should return the name of the landmark if clicked
+        const landmarks = [
+            'femur-center', 'hip-center', 'femur-proximal',
+            'femur-distal', 'medial-epicondyle', 'lateral-epicondyle',
+            'Distal-Medial-pt', 'Distal-Lateral-pt',
+            'Posterior-Medial-pt', 'Posterior-Lateral-pt'
+        ];
+
+        for (const landmark of landmarks) {
+            const button = document.getElementById(landmark);
+            if (button && button.contains(event.target)) {
+                return landmark; // Return the clicked landmark
+            }
+        }
+        return null; // No landmark clicked
+    }
+
+    activateLandmark(landmark) {
+        // Check if the landmark is already active
+        if (this.activeLandmark === landmark) {
+            this.deactivateLandmark(landmark); // Toggle off if already active
+            return;
+        }
+
+        // Deactivate the previous landmark if any
+        if (this.activeLandmark) {
+            this.deactivateLandmark(this.activeLandmark);
+        }
+
+        // Activate the new landmark
+        this.activeLandmark = landmark;
+
+        // Change button color to blue (active)
+        const activeButton = document.getElementById(landmark);
+        if (activeButton) {
+            activeButton.parentElement.style.color = 'blue'; // Change label color to blue
+        }
+    }
+
+    deactivateLandmark(landmark) {
+        // Logic to change the button color back to light gray (inactive)
+        const inactiveButton = document.getElementById(landmark);
+        if (inactiveButton) {
+            inactiveButton.parentElement.style.color = 'lightgray'; // Change label color to light gray
+        }
+        this.activeLandmark = null; // Clear the active landmark
     }
 
     createSphere = (position, normal) => {
@@ -131,6 +188,11 @@ export class AddLabels {
 
             this.transformControls.push({ control: transformControl, object: sphere, group: group });
 
+            // Ensure translation control is only active if a landmark is created
+            if (this.activeLandmark) {
+                transformControl.attach(sphere);
+            }
+
             return sphere;
         } catch (error) {
             console.error('Error in createSphere:', error);
@@ -165,5 +227,31 @@ export class AddLabels {
             this.scene.remove(control); // Remove control from scene
         });
         this.transformControls = [];
+    }
+
+    getLabels = () => {
+        // Get checkbox elements
+        const femurCenterCheckbox = document.getElementById('femur-center-checkbox');
+        const hipCenterCheckbox = document.getElementById('hip-center-checkbox');
+        const femurProximalCheckbox = document.getElementById('femur-proximal-checkbox');
+        const femurDistalCheckbox = document.getElementById('femur-distal-checkbox');
+        const medialEpicondyleCheckbox = document.getElementById('medial-epicondyle-checkbox');
+        const lateralEpicondyleCheckbox = document.getElementById('lateral-epicondyle-checkbox');
+        const distalMedialPtCheckbox = document.getElementById('Distal-Medial-pt-checkbox');
+        const distalLateralPtCheckbox = document.getElementById('Distal-Lateral-pt-checkbox');
+        const posteriorMedialPtCheckbox = document.getElementById('Posterior-Medial-pt-checkbox');
+        const posteriorLateralPtCheckbox = document.getElementById('Posterior-Lateral-pt-checkbox');
+
+        // Set labels based on checkbox states, ensuring the checkbox exists
+        this.femurCenter = femurCenterCheckbox?.checked ? document.getElementById('femur-center') : null;
+        this.hipCenter = hipCenterCheckbox?.checked ? document.getElementById('hip-center') : null;
+        this.femurProximal = femurProximalCheckbox?.checked ? document.getElementById('femur-proximal') : null;
+        this.femurDistal = femurDistalCheckbox?.checked ? document.getElementById('femur-distal') : null;
+        this.medialEpicondyle = medialEpicondyleCheckbox?.checked ? document.getElementById('medial-epicondyle') : null;
+        this.lateralEpicondyle = lateralEpicondyleCheckbox?.checked ? document.getElementById('lateral-epicondyle') : null;
+        this.DistalMedialPt = distalMedialPtCheckbox?.checked ? document.getElementById('Distal-Medial-pt') : null;
+        this.DistalLateralPt = distalLateralPtCheckbox?.checked ? document.getElementById('Distal-Lateral-pt') : null;
+        this.PosteriorMedialPt = posteriorMedialPtCheckbox?.checked ? document.getElementById('Posterior-Medial-pt') : null;
+        this.PosteriorLateralPt = posteriorLateralPtCheckbox?.checked ? document.getElementById('Posterior-Lateral-pt') : null;
     }
 }
