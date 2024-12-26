@@ -32,32 +32,24 @@ export class AddLabels {
 
         this.getLabels();
         this.init();
-
-        // Add checkbox change listeners
-        const checkboxes = document.querySelectorAll('[id$="-checkbox"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', () => {
-                console.log(`${checkbox.id} changed to:`, checkbox.checked);
-                this.getLabels();
-            });
-        });
     }
 
     init = () => {
         window.addEventListener('mousemove', this.boundMouseMove);
         window.addEventListener('click', this.boundClick);
 
-        // Add radio button change listeners
-        const radioButtons = document.querySelectorAll('.control-group input[type="radio"]');
-        radioButtons.forEach(radio => {
-            radio.addEventListener('change', () => {
-                console.log(`${radio.id} changed to:`, radio.checked);
-                this.getLabels();
-                // If the radio button is checked, set it as the active landmark
-                if (radio.checked) {
-                    const landmarkId = radio.id.replace('-checkbox', ''); // Remove -checkbox suffix if present
-                    this.activateLandmark(landmarkId);
-                }
+        // Add button click listeners for landmarks
+        this.addLandmarkButtonListeners();
+    }
+
+    // New method to handle landmark button clicks
+    addLandmarkButtonListeners() {
+        const buttons = document.querySelectorAll('.landmark-btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const landmarkId = button.id;
+                console.log(`${landmarkId} button clicked`);
+                this.toggleLandmark(landmarkId);
             });
         });
     }
@@ -68,24 +60,9 @@ export class AddLabels {
     }
 
     onClick = (event) => {
-        const clickedLandmark = this.getClickedLandmark(event);
-        if (clickedLandmark) {
-            const checkbox = document.getElementById(`${clickedLandmark}-checkbox`);
-            if (checkbox && checkbox.checked) {
-                this.activateLandmark(clickedLandmark);
-                // Show gizmo if sphere exists
-                if (this.sphereControls.has(clickedLandmark)) {
-                    const controlData = this.sphereControls.get(clickedLandmark);
-                    controlData.control.visible = true;
-                    controlData.control.enabled = true;
-                }
-                return;
-            }
-        }
-
-        // Only create new sphere if we have an active landmark and clicked on the model
         this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersects = this.raycaster.intersectObjects([this.femur, this.tibia]);
+        console.log("intesects", intersects)
         if (intersects.length > 0 && this.activeLandmark) {
             // Check if the active landmark is enabled
             if (!this.landmarks[this.activeLandmark]) {
@@ -104,14 +81,13 @@ export class AddLabels {
                         sphere,
                         control: this.transformControls[this.transformControls.length - 1]
                     });
+                    console.log("transformcontrols ::", this.transformControls)
                 }
             }
         }
     }
 
     getClickedLandmark(event) {
-        // Logic to determine if a landmark button was clicked
-        // This function should return the name of the landmark if clicked
         const landmarks = [
             'femur-center', 'hip-center', 'femur-proximal',
             'femur-distal', 'medial-epicondyle', 'lateral-epicondyle',
@@ -129,34 +105,20 @@ export class AddLabels {
     }
 
     activateLandmark(landmark) {
-        // Deactivate previous landmark controls
-        if (this.activeLandmark && this.sphereControls.has(this.activeLandmark)) {
-            const prevControl = this.sphereControls.get(this.activeLandmark);
-            prevControl.control.visible = false;
-            prevControl.control.enabled = false;
-        }
-
-        // Check if the landmark is already active
-        if (this.activeLandmark === landmark) {
-            this.deactivateLandmark(landmark);
+        if (this.activeLandmark == landmark) {
+            this.deactivateLandmark(landmark); // Call deactivate if already active
             return;
         }
-
-        // Activate the new landmark
         this.activeLandmark = landmark;
-
-        // Show controls if sphere exists for this landmark
         if (this.sphereControls.has(landmark)) {
             const controlData = this.sphereControls.get(landmark);
             controlData.control.visible = true;
             controlData.control.enabled = true;
         }
-
-        // Update visual feedback
         const activeButton = document.getElementById(landmark);
         if (activeButton) {
-            activeButton.style.borderColor = '#000';
-            activeButton.parentElement.style.color = '#000';
+            activeButton.style.borderColor = '#000'; // Active color
+            activeButton.parentElement.style.color = '#000'; // Active color
         }
     }
 
@@ -167,61 +129,76 @@ export class AddLabels {
             inactiveButton.style.borderColor = '#808080'; // Change radio button border to gray
             inactiveButton.parentElement.style.color = '#808080'; // Change label color to gray
         }
-        // Don't hide the sphere when deactivating landmark
-        this.activeLandmark = null;
+
+        // Detach the transform control for the active landmark
+        if (this.sphereControls.has(landmark)) {
+            const controlData = this.sphereControls.get(landmark);
+            console.log("sphere controls ::", this.sphereControls);
+            // Check if controlData is defined before logging
+            if (controlData) {
+                console.log('Retrieved control for landmark:', landmark, controlData); // Debugging log
+                if (controlData.control instanceof TransformControls) {
+                    controlData.control.detach(); // Detach the transform control
+                } else {
+                    console.warn('Control is not an instance of TransformControls');
+                }
+            } else {
+                console.warn('Control data is undefined for landmark:', landmark);
+            }
+        }
+
+        this.activeLandmark = null; // Reset active landmark
     }
 
     createSphere = (position, normal) => {
-        try {
-            // Create a group first
-            console.log("sphere")
-            const group = new Group();
-            this.scene.add(group);
+        const group = new Group();
+        this.scene.add(group);
+        // Create and add sphere to the group
+        const sphereGeometry = new SphereGeometry(0.01, 32, 32);
+        const sphereMaterial = new MeshBasicMaterial({
+            color: 0xff00ff,
+            depthTest: false,
+            transparent: true,
+            opacity: 0.8
+        });
+        const sphere = new Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.copy(position);
+        sphere.renderOrder = 999;
+        sphere.material.needsUpdate = true;
+        group.add(sphere);
 
-            // Create and add sphere to the group
-            const sphereGeometry = new SphereGeometry(0.01, 32, 32);
-            const sphereMaterial = new MeshBasicMaterial({
-                color: 0xff00ff,
-                depthTest: false,
-                transparent: true,
-                opacity: 0.8
+        // Enhanced transform control setup
+        const transformControl = new TransformControls(this.camera, this.renderer.domElement);
+        transformControl.setMode('translate');
+        transformControl.setSize(0.5);
+
+        // Get the helper/gizmo and add it to the scene
+        const gizmo = transformControl.getHelper();
+        this.scene.add(gizmo);
+
+        // Attach control to the sphere
+        transformControl.attach(sphere);
+
+        if (this.orbitControls) {
+            transformControl.addEventListener('dragging-changed', (event) => {
+                this.orbitControls.enabled = !event.value;
             });
-            const sphere = new Mesh(sphereGeometry, sphereMaterial);
-            sphere.position.copy(position);
-            sphere.renderOrder = 999;
-            sphere.material.needsUpdate = true;
-            group.add(sphere);
-
-            // Enhanced transform control setup
-            const transformControl = new TransformControls(this.camera, this.renderer.domElement);
-            transformControl.setMode('translate');
-            transformControl.setSize(0.5);
-
-            // Get the helper/gizmo and add it to the scene
-            const gizmo = transformControl.getHelper();
-            this.scene.add(gizmo);
-
-            // Attach control to the sphere
-            transformControl.attach(sphere);
-
-            if (this.orbitControls) {
-                transformControl.addEventListener('dragging-changed', (event) => {
-                    this.orbitControls.enabled = !event.value;
-                });
-            }
-
-            this.transformControls.push({ control: transformControl, object: sphere, group: group });
-
-            // Ensure translation control is only active if a landmark is created
-            if (this.activeLandmark) {
-                transformControl.attach(sphere);
-            }
-
-            return sphere;
-        } catch (error) {
-            console.error('Error in createSphere:', error);
-            return null;
         }
+
+        // Ensure transformControl is created before storing it
+        if (transformControl) {
+            // Store the control correctly in the sphereControls map
+            this.sphereControls.set(this.activeLandmark, {
+                sphere,
+                control: transformControl // Ensure this is the TransformControls instance
+            });
+        } else {
+            console.warn('TransformControl is undefined');
+        }
+
+        console.log("transform controls....:", transformControl)
+
+        return sphere;
     }
 
     getScreenPosition = (position) => {
@@ -232,6 +209,7 @@ export class AddLabels {
     }
 
     cleanup = () => {
+        console.log("cleanup calling ")
         // Remove keyboard event listeners
         window.removeEventListener('keydown', this.handleKeyDown);
         window.removeEventListener('keyup', this.handleKeyUp);
@@ -255,27 +233,42 @@ export class AddLabels {
     }
 
     getLabels = () => {
-        // Store boolean values indicating whether each landmark is checked
+        // Remove the checkbox state checks
         this.landmarks = {
-            'femur-center': document.getElementById('femur-center')?.checked || false,
-            'hip-center': document.getElementById('hip-center')?.checked || false,
-            'femur-proximal': document.getElementById('femur-proximal')?.checked || false,
-            'femur-distal': document.getElementById('femur-distal')?.checked || false,
-            'medial-epicondyle': document.getElementById('medial-epicondyle')?.checked || false,
-            'lateral-epicondyle': document.getElementById('lateral-epicondyle')?.checked || false,
-            'Distal-Medial-pt': document.getElementById('Distal-Medial-pt')?.checked || false,
-            'Distal-Lateral-pt': document.getElementById('Distal-Lateral-pt')?.checked || false,
-            'Posterior-Medial-pt': document.getElementById('Posterior-Medial-pt')?.checked || false,
-            'Posterior-Lateral-pt': document.getElementById('Posterior-Lateral-pt')?.checked || false
+            'femur-center': true, // Assume all landmarks are enabled
+            'hip-center': true,
+            'femur-proximal': true,
+            'femur-distal': true,
+            'medial-epicondyle': true,
+            'lateral-epicondyle': true,
+            'Distal-Medial-pt': true,
+            'Distal-Lateral-pt': true,
+            'Posterior-Medial-pt': true,
+            'Posterior-Lateral-pt': true
         };
     }
 
-    toggleSphereControl = (landmarkId) => {
-        const controlData = this.sphereControls.get(landmarkId);
-        if (controlData) {
-            const { control } = controlData;
-            control.control.enabled = !control.control.enabled;
-            control.control.visible = control.control.enabled;
+    toggleLandmark(landmarkId) {
+        const button = document.getElementById(landmarkId);
+        if (this.activeLandmark == landmarkId) {
+            this.deactivateLandmark(landmarkId);
+        } else {
+            this.activateLandmark(landmarkId);
         }
+        // Update button styles
+        this.updateButtonStyles();
+    }
+
+    updateButtonStyles() {
+        const buttons = document.querySelectorAll('.landmark-btn');
+        buttons.forEach(button => {
+            if (this.activeLandmark == button.id) {
+                button.style.borderColor = '#000'; // Active color
+                button.style.color = '#000'; // Active text color
+            } else {
+                button.style.borderColor = '#808080'; // Inactive color
+                button.style.color = '#808080'; // Inactive text color
+            }
+        });
     }
 }
