@@ -73,16 +73,16 @@ export class AddLabels {
             const intersection = intersects[0];
             const point = intersection.point;
             console.log("point", point)
-            // Create new sphere only if it doesn't exist
-            if (!this.sphereControls.has(this.activeLandmark)) {
+            // Check if the sphere already exists for the active landmark
+            if (this.sphereControls.has(this.activeLandmark)) {
+                const controlData = this.sphereControls.get(this.activeLandmark);
+                // Attach the control to the existing sphere if not already attached
+                if (controlData.control.object !== controlData.sphere) {
+                    controlData.control.attach(controlData.sphere);
+                }
+            } else {
+                // Create new sphere only if it doesn't exist
                 this.createSphere(point, intersection.face.normal);
-                // if (sphere) {
-                //     this.sphereControls.set(this.activeLandmark, {
-                //         sphere,
-                //         control: this.transformControls[this.transformControls.length - 1]
-                //     });
-                //     console.log("transformcontrols ::", this.transformControls)
-                // }
             }
         }
     }
@@ -117,8 +117,7 @@ export class AddLabels {
         }
         const activeButton = document.getElementById(landmark);
         if (activeButton) {
-            activeButton.style.borderColor = '#000'; // Active color
-            activeButton.parentElement.style.color = '#000'; // Active color
+            activeButton.classList.add('active'); // Add active class
         }
     }
 
@@ -126,8 +125,7 @@ export class AddLabels {
         // Change the button and label color back to light gray (inactive)
         const inactiveButton = document.getElementById(landmark);
         if (inactiveButton) {
-            inactiveButton.style.borderColor = '#808080'; // Change radio button border to gray
-            inactiveButton.parentElement.style.color = '#808080'; // Change label color to gray
+            inactiveButton.classList.remove('active'); // Remove active class
         }
 
         // Detach the transform control for the active landmark
@@ -246,12 +244,19 @@ export class AddLabels {
     }
 
     toggleLandmark(landmarkId) {
-        const button = document.getElementById(landmarkId);
-        if (this.activeLandmark == landmarkId) {
-            this.deactivateLandmark(landmarkId);
-        } else {
+        // Deactivate all landmarks first
+        console.log("toggling landmarks ::")
+        this.sphereControls.forEach((controlData, landmark) => {
+            this.deactivateLandmark(landmark);
+        });
+
+        // Ensure the active landmark is updated correctly
+        if (this.activeLandmark !== landmarkId) {
             this.activateLandmark(landmarkId);
+        } else {
+            console.log('Landmark is already active, no change made.');
         }
+
         // Update button styles
         this.updateButtonStyles();
     }

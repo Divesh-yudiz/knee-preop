@@ -69,43 +69,38 @@
       flex-grow: 1;
     }
 
-    /* Custom radio button styles */
-    .control-group input[type="radio"] {
-      appearance: none;
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #808080;
-      border-radius: 50%;
-      margin: 0;
+    .landmark-btn {
+      width: 30px;
+      height: 30px;
       cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       position: relative;
-      background: #fff;
+      object-fit: contain;
+      background: center;
+      background-size: 30px 30px;
+      border: none;
+      filter: grayscale(100%);
     }
 
-    .control-group input[type="radio"]:checked {
-      border-color: #000;
+    .landmark-btn.active {
+      filter: none;
     }
 
-    .control-group input[type="radio"]::before {
+    /* .landmark-btn::after {
       content: '';
       position: absolute;
-      width: 12px;
-      height: 12px;
-      background: #808080;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .control-group input[type="radio"]:checked::before {
       background: #000;
-    }
+    } */
 
-    /* Hover state */
-    .control-group input[type="radio"]:hover {
-      border-color: #666;
+    .control-group label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
   </style>
 </head>
@@ -113,34 +108,44 @@
 <body>
   <div class="left-panel">
     <div class="control-group">
-      <button class="landmark-btn" id="femur-center">Femur Center</button>
+      <label for="femur-center"><button class="landmark-btn" id="femur-center"
+          style="background-image: url('./assets/buttons/blue.png');"></button>Femur Center</label>
     </div>
     <div class="control-group">
-      <button class="landmark-btn" id="hip-center">Hip Center</button>
-    </div>  
-    <div class="control-group">
-      <button class="landmark-btn" id="femur-proximal">Femur Proximal Canal</button>
+      <label for="hip-center"><button class="landmark-btn" id="hip-center"
+          style="background-image: url('./assets/buttons/cyan.png');"></button>Hip Center</label>
     </div>
     <div class="control-group">
-      <button class="landmark-btn" id="femur-distal">Femur Distal Canal</button>
+      <label for="femur-proximal"><button class="landmark-btn" id="femur-proximal"
+          style="background-image: url('./assets/buttons/green.png');"></button>Femur Proximal Canal</label>
     </div>
     <div class="control-group">
-      <button class="landmark-btn" id="medial-epicondyle">Medial Epicondyle</button>
+      <label for="femur-distal"><button class="landmark-btn" id="femur-distal"
+          style="background-image: url('./assets/buttons/magenta.png');"></button>Femur Distal Canal</label>
     </div>
     <div class="control-group">
-      <button class="landmark-btn" id="lateral-epicondyle">Lateral Epicondyle</button>
+      <label for="medial-epicondyle"><button class="landmark-btn" id="medial-epicondyle"
+          style="background-image: url('./assets/buttons/orange.png');"></button>Medial Epicondyle</label>
     </div>
     <div class="control-group">
-      <button class="landmark-btn" id="Distal-Medial-pt">Distal Medial Pt</button>
+      <label for="lateral-epicondyle"><button class="landmark-btn" id="lateral-epicondyle"
+          style="background-image: url('./assets/buttons/purple.png');"></button>Lateral Epicondyle</label>
     </div>
     <div class="control-group">
-      <button class="landmark-btn" id="Distal-Lateral-pt">Distal Lateral Pt</button>
+      <label for="Distal-Medial-pt"><button class="landmark-btn" id="Distal-Medial-pt"
+          style="background-image: url('./assets/buttons/red.png');"></button>Distal Medial Pt</label>
     </div>
     <div class="control-group">
-      <button class="landmark-btn" id="Posterior-Medial-pt">Posterior Medial Pt</button>
+      <label for="Distal-Lateral-pt"><button class="landmark-btn" id="Distal-Lateral-pt"
+          style="background-image: url('./assets/buttons/teal.png');"></button>Distal Lateral Pt</label>
     </div>
     <div class="control-group">
-      <button class="landmark-btn" id="Posterior-Lateral-pt">Posterior Lateral Pt</button>
+      <label for="Posterior-Medial-pt"><button class="landmark-btn" id="Posterior-Medial-pt"
+          style="background-image: url('./assets/buttons/violet.png');"></button>Posterior Medial Pt</label>
+    </div>
+    <div class="control-group">
+      <label for="Posterior-Lateral-pt"><button class="landmark-btn" id="Posterior-Lateral-pt"
+          style="background-image: url('./assets/buttons/yellow.png');"></button>Posterior Lateral Pt</label>
     </div>
     <button class="update-btn">Update</button>
   </div>
