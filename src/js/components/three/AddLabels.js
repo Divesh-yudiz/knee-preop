@@ -75,14 +75,14 @@ export class AddLabels {
             console.log("point", point)
             // Create new sphere only if it doesn't exist
             if (!this.sphereControls.has(this.activeLandmark)) {
-                const sphere = this.createSphere(point, intersection.face.normal);
-                if (sphere) {
-                    this.sphereControls.set(this.activeLandmark, {
-                        sphere,
-                        control: this.transformControls[this.transformControls.length - 1]
-                    });
-                    console.log("transformcontrols ::", this.transformControls)
-                }
+                this.createSphere(point, intersection.face.normal);
+                // if (sphere) {
+                //     this.sphereControls.set(this.activeLandmark, {
+                //         sphere,
+                //         control: this.transformControls[this.transformControls.length - 1]
+                //     });
+                //     console.log("transformcontrols ::", this.transformControls)
+                // }
             }
         }
     }
@@ -157,14 +157,11 @@ export class AddLabels {
         const sphereGeometry = new SphereGeometry(0.01, 32, 32);
         const sphereMaterial = new MeshBasicMaterial({
             color: 0xff00ff,
-            depthTest: false,
-            transparent: true,
-            opacity: 0.8
+            opacity: 1
         });
         const sphere = new Mesh(sphereGeometry, sphereMaterial);
         sphere.position.copy(position);
-        sphere.renderOrder = 999;
-        sphere.material.needsUpdate = true;
+        sphere.renderOrder = 0;
         group.add(sphere);
 
         // Enhanced transform control setup

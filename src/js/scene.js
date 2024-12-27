@@ -95,18 +95,20 @@ export default class MainScene {
     const femurMaterial = new MeshStandardMaterial({ color: 0xcccccc })
     const tibiaMaterial = new MeshStandardMaterial({ color: 0xcccccc })
 
-    this.femur = new Mesh(femurGeometry, femurMaterial)
-    this.tibia = new Mesh(tibiaGeometry, tibiaMaterial)
+    this.femur = new Mesh(femurGeometry, femurMaterial);
+    this.femur.renderOrder = 1;
+    this.tibia = new Mesh(tibiaGeometry, tibiaMaterial);
+    this.tibia.renderOrder = 1;
 
-    this.boneGroup = new Group()
-    this.boneGroup.add(this.femur)
-    this.boneGroup.add(this.tibia)
-    this.boneGroup.scale.set(0.009, 0.009, 0.009)
-    this.boneGroup.rotation.set(Math.PI * 1.5, 0, 0)
-    const box = new Box3().setFromObject(this.boneGroup)
-    const center = box.getCenter(new Vector3())
-    this.boneGroup.position.sub(center)
-    this.scene.add(this.boneGroup)
+    this.boneGroup = new Group();
+    this.boneGroup.add(this.femur);
+    this.boneGroup.add(this.tibia);
+    this.boneGroup.scale.set(0.01, 0.01, 0.01);
+    this.boneGroup.rotation.set(Math.PI * 1.5, 0, 0);
+    const box = new Box3().setFromObject(this.boneGroup);
+    const center = box.getCenter(new Vector3());
+    this.boneGroup.position.sub(center);
+    this.scene.add(this.boneGroup);
 
     this.labels = new AddLabels(
       this.camera.camera,
