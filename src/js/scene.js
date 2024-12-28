@@ -21,7 +21,7 @@ import vertexShader from './glsl/main.vert'
 import fragmentShader from './glsl/main.frag'
 import gsap from 'gsap'
 import { AddLabels } from './components/three/AddLabels'
-import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+import { AddLines } from './components/three/addLines'
 
 
 export default class MainScene {
@@ -96,9 +96,9 @@ export default class MainScene {
     const tibiaMaterial = new MeshStandardMaterial({ color: 0xcccccc })
 
     this.femur = new Mesh(femurGeometry, femurMaterial);
-    this.femur.renderOrder = 1;
+    this.femur.renderOrder = 2;
     this.tibia = new Mesh(tibiaGeometry, tibiaMaterial);
-    this.tibia.renderOrder = 1;
+    this.tibia.renderOrder = 2;
 
     this.boneGroup = new Group();
     this.boneGroup.add(this.femur);
@@ -120,11 +120,14 @@ export default class MainScene {
       this.renderer,
       this.controls
     );
+
+    this.landmarks = this.labels.sphereControls;
+    this.lines = new AddLines(this.scene, this.landmarks)
   }
 
   setAxesHelper() {
     const axesHelper = new AxesHelper(3)
-    this.scene.add(axesHelper)
+    // this.scene.add(axesHelper)
   }
 
   setGUI() {

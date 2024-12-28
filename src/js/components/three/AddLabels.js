@@ -24,9 +24,6 @@ export class AddLabels {
         this.renderer = renderer;
         this.orbitControls = controls;
         this.transformControls = [];
-        if (!this.orbitControls) {
-            console.warn('OrbitControls not provided to AddLabels');
-        }
         this.boundMouseMove = this.onMouseMove.bind(this);
         this.boundClick = this.onClick.bind(this);
 
@@ -151,15 +148,21 @@ export class AddLabels {
     createSphere = (position, normal) => {
         const group = new Group();
         this.scene.add(group);
+
+        // Get the color from the active landmark button
+        const activeButton = document.getElementById(this.activeLandmark);
+        const backgroundImage = activeButton.style.backgroundImage;
+        const color = this.extractColorFromBackgroundImage(backgroundImage);
+
         // Create and add sphere to the group
         const sphereGeometry = new SphereGeometry(0.01, 32, 32);
         const sphereMaterial = new MeshBasicMaterial({
-            color: 0xff00ff,
+            color: color, // Use the extracted color
             opacity: 1
         });
         const sphere = new Mesh(sphereGeometry, sphereMaterial);
         sphere.position.copy(position);
-        sphere.renderOrder = 0;
+        sphere.renderOrder = 1;
         group.add(sphere);
 
         // Enhanced transform control setup
@@ -194,6 +197,30 @@ export class AddLabels {
         console.log("transform controls....:", transformControl)
 
         return sphere;
+    }
+
+    // New method to extract color from the background image URL
+    extractColorFromBackgroundImage(backgroundImage) {
+        const colorMap = {
+            'blue': 0x0000ff,
+            'cyan': 0x00ffff,
+            'green': 0x00ff00,
+            'magenta': 0xff00ff,
+            'orange': 0xffa500,
+            'purple': 0x800080,
+            'red': 0xff0000,
+            'teal': 0x008080,
+            'violet': 0xee82ee,
+            'yellow': 0xffff00
+        };
+
+        // Extract the color name from the background image URL
+        const match = backgroundImage.match(/\/([^\/]+)\.png/);
+        if (match) {
+            const colorName = match[1]; // Get the color name from the URL
+            return colorMap[colorName] || 0xff00ff; // Default to magenta if not found
+        }
+        return 0xff00ff; // Default to magenta if no match
     }
 
     getScreenPosition = (position) => {
