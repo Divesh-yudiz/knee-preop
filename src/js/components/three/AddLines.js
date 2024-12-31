@@ -85,7 +85,7 @@ export class AddLines {
             }
         }
         // Call createPlane after all lines have been created, passing the created lines and their names
-        await this.addPlane.createPlane(createdLines);
+        await this.addPlane.createPlane(createdLines, this.landmarkPositions);
         // }
     }
 }
