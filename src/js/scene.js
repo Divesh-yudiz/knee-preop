@@ -12,17 +12,15 @@ import {
   Vector3,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import Stats from 'stats-js'
 import LoaderManager from '@/js/managers/LoaderManager'
 import GUI from 'lil-gui'
 import { Camera } from './components/three/camera'
 import { Light } from './components/three/lights'
-import vertexShader from './glsl/main.vert'
-import fragmentShader from './glsl/main.frag'
-import gsap from 'gsap'
 import { AddLabels } from './components/three/AddLabels'
 import { AddLines } from './components/three/AddLines'
 import Roboto_Regular from '../assets/gentilis_regular.typeface.json'
+import Right_Femur from '../assets/Right_Femur.stl'
+import Right_Tibia from '../assets/Right_Tibia.stl'
 
 
 export default class MainScene {
@@ -50,11 +48,11 @@ export default class MainScene {
     const assets = [
       {
         name: 'femur',
-        stl: './assets/Right_Femur.stl',
+        stl: Right_Femur,
       },
       {
         name: 'tibia',
-        stl: './assets/Right_Tibia.stl',
+        stl: Right_Tibia,
       },
       // {
       //   name: 'Roboto_Regular',
