@@ -1,10 +1,11 @@
-import { Vector3, PlaneGeometry, MeshBasicMaterial, Mesh, DoubleSide, BufferGeometry, LineBasicMaterial, Line, Group } from "three";
+import { Vector3, PlaneGeometry, MeshBasicMaterial, Mesh, DoubleSide, BufferGeometry, LineBasicMaterial, Line, Group, BoxGeometry } from "three";
 
 export class AddPlane {
     constructor(scene) {
         this.scene = scene;
         this.plane;
         this.projectedTeaAxis;
+        this.isRessectBoxVisible = false
         this.activateButtons();
     }
 
@@ -27,6 +28,10 @@ export class AddPlane {
         });
         document.querySelector('.dPlus-btn').addEventListener('click', () => {
             this.changeDistalResection(1, 'plus');
+        });
+
+        document.querySelector('#resection').addEventListener('change', (event) => {
+            event.target.checked ? this.resectionStatus(true) : this.resectionStatus(false);
         });
     }
 
@@ -54,16 +59,31 @@ export class AddPlane {
     changeDistalResection = (amount, state) => {
         const distalResectionElement = document.getElementById('Distal-resection');
         let currentValue = parseInt(distalResectionElement.textContent);
-        currentValue = Math.max(0, currentValue + amount);
+        currentValue = currentValue + amount;
         distalResectionElement.textContent = `${currentValue} mm`;
-        const updatedPosition = currentValue * 0.001; // Convert to meters
-        console.log("updatedPosition", updatedPosition);
+        this.updatedPosition = currentValue * 0.001; // Convert to meters
         if (state == 'plus') {
-            this.distalResectionPlane.position.y += updatedPosition; // Set the position of the distal resection plane directly
+            this.distalResectionPlane.position.y += this.updatedPosition; // Move the plane up
         } else {
-            this.distalResectionPlane.position.y -= updatedPosition;
+            this.distalResectionPlane.position.y -= this.updatedPosition; // Move the plane down
+        }
+        if (this.isRessectBoxVisible) {
+            if (this.resectBox) {
+                this.scene.remove(this.resectBox);
+            }
+            this.createResectBox(currentValue * 0.1);
         }
         this.distalResectionPlane.updateMatrix(); // Ensure the transformation is applied
+    }
+
+    resectionStatus = (status) => {
+        if (status) {
+            this.isRessectBoxVisible = true
+            this.createResectBox(this.updatedPosition);
+        } else {
+            this.isRessectBoxVisible = false
+            this.scene.remove(this.resectBox)
+        }
     }
 
     createPlane = (lines, landmarks) => {
@@ -197,6 +217,22 @@ export class AddPlane {
         this.scene.add(this.distalResectionPlane)
     }
 
-    
+    createResectBox = (scale = 1) => {
+        console.log("scale", scale)
+        const medianPosition = new Vector3(
+            (this.distalMedialPlane.position.x + this.distalResectionPlane.position.x) / 2,
+            (this.distalMedialPlane.position.y + this.distalResectionPlane.position.y) / 2,
+            (this.distalMedialPlane.position.z + this.distalResectionPlane.position.z) / 2
+        );
+
+        const boxGeometry = new BoxGeometry(1, 1, 1);
+        const boxMaterial = new MeshBasicMaterial({ color: 0x000000 });
+        boxMaterial.colorWrite = false;
+        this.resectBox = new Mesh(boxGeometry, boxMaterial);
+        this.resectBox.position.copy(medianPosition);
+        this.resectBox.scale.set(2, 0.1 * scale, 2);
+        this.scene.add(this.resectBox);
+    }
+
 
 }
