@@ -39,10 +39,9 @@ export class AddLines {
                     const line = new Line(geometry, material);
                     line.renderOrder = 0;
                     this.scene.add(line);
-                    createdLines.push({ line: line, name: lineName }); // Store the created line and its name
+                    createdLines.push({ line: line, name: lineName });
                 }
             }
-            // Call createPlane after all lines have been created, passing the created lines and their names
             await this.addPlane.createPlane(createdLines, this.landmarks);
         }
     }
