@@ -21,7 +21,7 @@ import vertexShader from './glsl/main.vert'
 import fragmentShader from './glsl/main.frag'
 import gsap from 'gsap'
 import { AddLabels } from './components/three/AddLabels'
-import { AddLines } from './components/three/addLines'
+import { AddLines } from './components/three/AddLines'
 import Roboto_Regular from '../assets/gentilis_regular.typeface.json'
 
 
