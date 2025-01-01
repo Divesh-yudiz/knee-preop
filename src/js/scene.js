@@ -22,6 +22,7 @@ import fragmentShader from './glsl/main.frag'
 import gsap from 'gsap'
 import { AddLabels } from './components/three/AddLabels'
 import { AddLines } from './components/three/addLines'
+import Roboto_Regular from '../assets/gentilis_regular.typeface.json'
 
 
 export default class MainScene {
@@ -54,7 +55,11 @@ export default class MainScene {
       {
         name: 'tibia',
         stl: './assets/Right_Tibia.stl',
-      }
+      },
+      // {
+      //   name: 'Roboto_Regular',
+      //   font: Roboto_Regular
+      // }
     ]
 
     await LoaderManager.load(assets)
@@ -96,9 +101,9 @@ export default class MainScene {
     const tibiaMaterial = new MeshStandardMaterial({ color: 0xcccccc })
 
     this.femur = new Mesh(femurGeometry, femurMaterial);
-    this.femur.renderOrder = 2;
+    this.femur.renderOrder = 5;
     this.tibia = new Mesh(tibiaGeometry, tibiaMaterial);
-    this.tibia.renderOrder = 2;
+    this.tibia.renderOrder = 5;
 
     this.boneGroup = new Group();
     this.boneGroup.add(this.femur);

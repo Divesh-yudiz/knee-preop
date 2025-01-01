@@ -17,5 +17,5 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  plugins: [glslify()],
+  plugins: [glslify()]
 })

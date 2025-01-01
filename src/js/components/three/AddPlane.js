@@ -1,4 +1,7 @@
 import { Vector3, PlaneGeometry, MeshBasicMaterial, Mesh, DoubleSide, BufferGeometry, LineBasicMaterial, Line, Group, BoxGeometry } from "three";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
+
 
 export class AddPlane {
     constructor(scene) {
@@ -7,6 +10,13 @@ export class AddPlane {
         this.projectedTeaAxis;
         this.isRessectBoxVisible = false
         this.activateButtons();
+        // this.fontLoader = new FontLoader();
+        // this.fontLoader.load(Roboto_Regular, (font) => {
+        //     this.font = font;
+        // }, undefined, (error) => {
+        //     console.error('Error loading font:', error);
+        //     console.error('Failed to load font from:', Roboto_Regular);
+        // });
     }
 
     activateButtons = () => {
@@ -79,6 +89,7 @@ export class AddPlane {
     resectionStatus = (status) => {
         if (status) {
             this.isRessectBoxVisible = true
+            console.log("updated position ::", this.updatedPosition)
             this.createResectBox(this.updatedPosition);
         } else {
             this.isRessectBoxVisible = false
@@ -191,8 +202,14 @@ export class AddPlane {
 
     createDistalMedialPlane = () => {
         console.log("landmarks", this.landmarks);
-        const distalMedialPt = this.landmarks["Distal-Medial-pt"];
-        const distalLateralPt = this.landmarks["Distal-Lateral-pt"];
+
+        // Access the positions of the spheres
+        const distalMedialPt = this.landmarks.get("Distal-Medial-pt").sphere.position; // Get position of the sphere
+        const distalLateralPt = this.landmarks.get("Distal-Lateral-pt").sphere.position; // Get position of the sphere
+
+        console.log("Distal Medial Position:", distalMedialPt);
+        console.log("Distal Lateral Position:", distalLateralPt);
+
         const medianPt = new Vector3(
             (distalMedialPt.x + distalLateralPt.x) / 2,
             (distalMedialPt.y + distalLateralPt.y) / 2,
@@ -231,7 +248,66 @@ export class AddPlane {
         this.resectBox = new Mesh(boxGeometry, boxMaterial);
         this.resectBox.position.copy(medianPosition);
         this.resectBox.scale.set(2, 0.1 * scale, 2);
+        this.resectBox.renderOrder = 2;
         this.scene.add(this.resectBox);
+        console.log("distal medial plane position ::", this.distalMedialPlane.position)
+        this.createMeasurementLines(this.distalMedialPlane.position, this.distalResectionPlane.position)
+        const distalLateralPt =this.landmarks.get("Distal-Lateral-pt").sphere.position;
+
+        console.log("plane in y", this.distalResectionPlane.position.y)
+        this.createMeasurementLines(distalLateralPt, new Vector3(distalLateralPt.x, this.distalResectionPlane.position.y, distalLateralPt.z))
+    }
+
+    createMeasurementLines = (pointA, pointB) => {
+        const boxGeometry = new BoxGeometry(0.01, 0.01, 0.01); // Smaller box size
+        const boxMaterial = new MeshBasicMaterial({ color: 0x00ff00 }); // Green color
+
+        // Create a group to hold boxA, boxB, and the line
+        const measurementGroup = new Group();
+        measurementGroup.renderOrder = 0;
+        // Create box at pointA
+        const boxA = new Mesh(boxGeometry, boxMaterial);
+        boxA.position.set(pointA.x, pointA.y, pointA.z);
+        measurementGroup.add(boxA);
+
+        // Create box at pointB
+        const boxB = new Mesh(boxGeometry, boxMaterial);
+        boxB.position.set(pointB.x, pointB.y, pointB.z);
+        measurementGroup.add(boxB);
+
+        // Calculate the median of the line
+        const median = new Vector3(
+            (pointA.x + pointB.x) / 2,
+            (pointA.y + pointB.y) / 2,
+            (pointA.z + pointB.z) / 2
+        );
+
+        // Create a line connecting pointA and pointB
+        const lineGeometry = new BufferGeometry().setFromPoints([pointA, pointB]);
+        const lineMaterial = new LineBasicMaterial({ color: 0x0000ff }); // Blue color
+        const line = new Line(lineGeometry, lineMaterial);
+        measurementGroup.add(line);
+
+        this.scene.add(measurementGroup);
+
+
+
+        // Add a text number at the median with a small font size
+        const textGeometry = new TextGeometry(`Distance: ${pointA.distanceTo(pointB).toFixed(2)}`, {
+            font: this.font,
+            size: 5, // Reduced font size
+            height: 0.01,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 0.01,
+            bevelSize: 0.02,
+            bevelSegments: 5
+        });
+        const textMaterial = new MeshBasicMaterial({ color: 0xff0000 }); // Red color
+        const textMesh = new Mesh(textGeometry, textMaterial);
+        // textMesh.scale.set(0.9)
+        textMesh.position.set(median.x, median.y, median.z);
+        // this.scene.add(textMesh);
     }
 
 
