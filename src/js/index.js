@@ -4,4 +4,5 @@ import Scene from './scene'
 (() => {
   // scene
   new Scene()
+  console.log = () => { };
 })()
