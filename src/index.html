@@ -145,10 +145,125 @@
       align-items: center;
       gap: 10px;
     }
+
+    .screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgb(70, 179, 222);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loader {
+      width: 100%;
+      height: 15px;
+      text-align: center;
+    }
+
+    .dot {
+      position: relative;
+      width: 15px;
+      height: 15px;
+      margin: 0 8px;
+      /* Adjust spacing if needed */
+      display: inline-block;
+    }
+
+    .dot:before {
+      content: "";
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background-color: white;
+      border-radius: 50%;
+      animation: dotHover 900ms cubic-bezier(.82, 0, .26, 1) infinite;
+    }
+
+    .dot:after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      background: rgba(0, 0, 0, 0.2);
+      /* Add semi-transparent shadow */
+      width: 100%;
+      height: 3px;
+      left: 0;
+      bottom: -5px;
+      /* Adjust distance for the shadow */
+      border-radius: 50%;
+      animation: dotShadow 900ms cubic-bezier(.82, 0, .26, 1) infinite;
+    }
+
+    .dot:nth-child(1):before,
+    .dot:nth-child(1):after {
+      animation-delay: 0ms;
+    }
+
+    .dot:nth-child(2):before,
+    .dot:nth-child(2):after {
+      animation-delay: 300ms;
+    }
+
+    .dot:nth-child(3):before,
+    .dot:nth-child(3):after {
+      animation-delay: 600ms;
+    }
+
+    @keyframes dotHover {
+      0% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-20px) scale(1.1);
+        /* Add a bounce effect */
+      }
+
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes dotShadow {
+      0% {
+        transform: scaleX(1);
+        opacity: 0.2;
+      }
+
+      50% {
+        transform: scaleX(0.6);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scaleX(1);
+        opacity: 0.2;
+      }
+    }
+
+    .description {
+      margin-top: 50px;
+      font-size: large;
+      color: #152977
+    }
   </style>
 </head>
 
 <body>
+  <div class="screen" id="loading-screen">
+    <div class="loader">
+      <div class="dot" style="animation-delay: 0ms;"></div>
+      <div class="dot" style="animation-delay: 300ms;"></div>
+      <div class="dot" style="animation-delay: 600ms;"></div>
+    </div>
+    <p class="description">Arrange the labels accurately to achieve optimal results.</p>
+  </div>
   <div class="left-panel">
     <div class="control-group">
       <label for="femur-center"><button class="landmark-btn" id="femur-center"

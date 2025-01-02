@@ -35,15 +35,20 @@ export default class MainScene {
   scene1
   labels
   transformControl
+  loadingScreen
 
   constructor() {
     this.canvas = document.querySelector('.scene')
+    this.loadingScreen = document.getElementById('loading-screen')
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.init();
   }
 
   init = async () => {
+    // Show loading screen
+    this.loadingScreen.style.display = 'flex';
+
     // Preload assets before initiating the scene
     const assets = [
       {
@@ -72,6 +77,16 @@ export default class MainScene {
     this.setAxesHelper();
     this.handleResize()
     this.events()
+
+    // Hide loading screen after models are loaded
+    this.loadingScreen.style.opacity = '1';
+    setTimeout(() => {
+      this.loadingScreen.style.transition = 'opacity 0.5s';
+      this.loadingScreen.style.opacity = '0';
+      setTimeout(() => {
+        this.loadingScreen.style.display = 'none'; // Remove from view
+      }, 500);
+    }, 100); // Delay to allow for loading screen to show
   }
 
   setRender() {
